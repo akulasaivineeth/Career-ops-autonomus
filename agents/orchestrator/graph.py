@@ -38,6 +38,19 @@ def _stub_verify(run_id: str, jd_url: str) -> dict[str, bool]:
 
 def n_score(state: AppState) -> dict[str, object]:
     res = _stub_score_jd(state["jd_text"])
+    # Sync status to Excel tracker so the spreadsheet stays live
+    try:
+        from agents.tools.tracker import upsert_application
+
+        upsert_application(
+            run_id=state["run_id"],
+            jd_url=state.get("jd_url", ""),
+            track=str(res.get("track") or ""),
+            score=float(res["score"]) if res.get("score") is not None else None,
+            apply_status="scoring",
+        )
+    except Exception:
+        pass
     return {"track": res["track"], "score": res["score"], "report_path": res["report_path"]}
 
 
@@ -60,6 +73,12 @@ def n_pdf_gate(state: AppState) -> dict[str, object]:
 
 
 def n_apply(state: AppState) -> dict[str, str | None]:
+    try:
+        from agents.tools.tracker import update_status
+
+        update_status(state["run_id"], "applying")
+    except Exception:
+        pass
     res = _stub_drive(
         state["jd_url"],
         state.get("pdf_path"),
@@ -71,6 +90,13 @@ def n_apply(state: AppState) -> dict[str, str | None]:
 
 def n_verify(state: AppState) -> dict[str, object]:
     res = _stub_verify(state["run_id"], state["jd_url"])
+    final_status = "submitted" if res["confirmed"] else "apply_failed"
+    try:
+        from agents.tools.tracker import update_status
+
+        update_status(state["run_id"], final_status)
+    except Exception:
+        pass
     if res["confirmed"]:
         return {}
     return {"errors": ["unverified_submission"]}

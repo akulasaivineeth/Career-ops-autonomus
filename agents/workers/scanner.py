@@ -48,6 +48,7 @@ def _record_seen(jd_hash: str, jd_id: str, title: str, company: str) -> None:
 
 def _append_pipeline(jd_id: str, url: str, title: str, company: str, source: str) -> None:
     _DATA_DIR.mkdir(parents=True, exist_ok=True)
+    # Write markdown (DATA_CONTRACT legacy)
     if not _PIPELINE_MD.exists():
         _PIPELINE_MD.write_text(
             "# Pipeline\n\n| jd_id | title | company | source | status | url |\n"
@@ -56,6 +57,20 @@ def _append_pipeline(jd_id: str, url: str, title: str, company: str, source: str
         )
     with open(_PIPELINE_MD, "a", encoding="utf-8") as f:
         f.write(f"| {jd_id} | {title} | {company} | {source} | queued | {url} |\n")
+    # Mirror to Excel (primary human-readable view)
+    try:
+        from agents.tools.tracker import add_pipeline_jd
+
+        add_pipeline_jd(
+            jd_id=jd_id,
+            company=company,
+            role_title=title,
+            source=source,
+            jd_url=url,
+            status="queued",
+        )
+    except Exception:
+        pass
 
 
 def scan_greenhouse(company_slugs: list[str], *, seen: set[str]) -> list[str]:

@@ -19,6 +19,7 @@ dependencies = [
   "langgraph>=0.4",
   "langgraph-checkpoint-sqlite>=2.0.11",
   "nanoid>=2.0",
+  "openpyxl>=3.1.5",
   "playwright>=1.49",
   "playwright-stealth>=2.0.2",
   "pydantic>=2",
@@ -26,6 +27,7 @@ dependencies = [
   "structlog>=24.4",
   "tenacity>=9.0",
   "uvicorn[standard]>=0.32",
+  "openpyxl>=3.1",
 ]
 
 [project.optional-dependencies]
