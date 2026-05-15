@@ -1,0 +1,31 @@
+# Example profile — copy to ``config/profile.yml`` and customize (never commit secrets).
+
+identity:
+  display_name: "Example User"
+
+targets:
+  roles: []
+
+comp:
+  currency: USD
+
+# Autonomy ladder (arch.D Phase 4). Start conservative.
+autonomy:
+  level: 1 # 0=dry-run, 1=approve-everything, 2=approve-submit-only,
+           # 3=approve-anomalies-only, 4=full-auto
+  rules:
+    submit_gate: hitl # hitl | auto_if_score_ge_4_5 | auto
+    account_creation: hitl
+    twofa: hitl # hitl | auto_gmail | hitl
+    pdf_review: auto_if_track_stable
+    captcha_after_3_fail: hitl
+    new_site_first_time: hitl_always
+
+tracks:
+  da: []
+  mle: []
+  de: []
+
+gmail_account: ""
+whatsapp_number: ""
+proxy_pool: []

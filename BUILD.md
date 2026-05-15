@@ -8,21 +8,21 @@
 
 | Field | Value |
 |---|---|
-| **Phase** | Phase −1 — Cold Start (nothing built yet) |
-| **Last updated** | 2026-05-12 (initial) |
+| **Phase** | Phase 0 — Foundations (Nix flake lock + Ollama still pending Task 0.1) |
+| **Last updated** | 2026-05-15 |
 | **Active task** | None |
-| **Completed tasks** | 0 / 48 |
+| **Completed tasks** | 7 / 48 (Phase 0 tasks 0.2–0.8 done on this fork; see Decision Log) |
 | **Blockers** | None |
 | **Autonomy level** | 0 (build mode; no live applies yet) |
-| **Repo cloned?** | ❌ Not yet — run Task −1.1 |
-| **Toolchain ready?** | ❌ Not yet — run Tasks −1.2 through −1.4 |
-| **Secrets configured?** | ❌ Not yet — run Tasks −1.5 through −1.7 |
+| **Repo cloned?** | ✅ `Career-ops-autonomus` (fork scaffold; upstream `santifer/career-ops` optional) |
+| **Toolchain ready?** | ⚠️ `uv` + Python 3.12 in CI; full `nix develop` + `flake.lock` pending Task 0.1 |
+| **Secrets configured?** | ❌ Not yet — run Tasks −1.5 through −1.7 on your Mac |
 
 ### 🎯 Now / Next / Later
 
-- **Now:** Task −1.1 (clone the repo and verify upstream)
-- **Next:** Task −1.2 (install Nix + direnv), Task −1.3 (verify existing Node/Go stack)
-- **Later:** Phase 0 foundations (Python toolchain, secrets vault, FastAPI scaffold)
+- **Now:** Task 0.1 (extend `flake.nix` + commit `flake.lock` + Ollama) **or** Phase −1 cold start on macOS
+- **Next:** Task 1.1 (LangGraph skeleton) once 0.1 and −1.x are green on your machine
+- **Later:** Phase 1 MVP applier
 
 ---
 
@@ -533,7 +533,7 @@ Every agent session on this repo must follow this loop:
 
 ---
 
-### - [ ] Task 0.2 — Create Python scaffold + `.gitignore`
+### - [x] ✅ 2026-05-15 Task 0.2 — Create Python scaffold + `.gitignore`
 - **Files:** `agents/__init__.py`, `agents/{orchestrator,workers,tools,adapters,prompts,tests}/__init__.py`, `bridge/__init__.py`, `audit/.gitkeep`, `db/.gitkeep`, `cv/.gitkeep`, `infra/.gitkeep`, `scripts/.gitkeep`, `bin/.gitkeep`, `docs/.gitkeep`, `.gitignore` (extend)
 - **Depends on:** 0.1
 - **Acceptance:**
@@ -590,7 +590,7 @@ Every agent session on this repo must follow this loop:
 
 ---
 
-### - [ ] Task 0.3 — `pyproject.toml` + initial `uv sync`
+### - [x] ✅ 2026-05-15 Task 0.3 — `pyproject.toml` + initial `uv sync`
 - **Files:** `pyproject.toml`, `uv.lock`, `.python-version`
 - **Depends on:** 0.2
 - **Acceptance:**
@@ -610,7 +610,7 @@ Every agent session on this repo must follow this loop:
 
 ---
 
-### - [ ] Task 0.4 — `agents/tools/keychain.py` with macOS Keychain + 1Password CLI fallback
+### - [x] ✅ 2026-05-15 Task 0.4 — `agents/tools/keychain.py` with macOS Keychain + 1Password CLI fallback
 - **Files:** `agents/tools/keychain.py`, `agents/tests/test_keychain.py`, `docs/SECRETS.md`
 - **Depends on:** 0.3
 - **Acceptance:**
@@ -628,7 +628,7 @@ Every agent session on this repo must follow this loop:
 
 ---
 
-### - [ ] Task 0.5 — `agents/tools/gmail.py` (OAuth2 + verification-code extractor)
+### - [x] ✅ 2026-05-15 Task 0.5 — `agents/tools/gmail.py` (OAuth2 + verification-code extractor)
 - **Files:** `agents/tools/gmail.py`, `agents/tests/test_gmail.py` (mocked), `docs/GMAIL_SETUP.md`, `Makefile` with `oauth-gmail` target
 - **Depends on:** 0.4
 - **Acceptance:**
@@ -648,7 +648,7 @@ Every agent session on this repo must follow this loop:
 
 ---
 
-### - [ ] Task 0.6 — FastAPI bridge scaffold at `127.0.0.1:8765`
+### - [x] ✅ 2026-05-15 Task 0.6 — FastAPI bridge scaffold at `127.0.0.1:8765`
 - **Files:** `bridge/server.py`, `bridge/__main__.py`, `agents/tests/test_bridge_health.py`
 - **Depends on:** 0.3
 - **Acceptance:**
@@ -666,7 +666,7 @@ Every agent session on this repo must follow this loop:
 
 ---
 
-### - [ ] Task 0.7 — SQLite schema + migration script
+### - [x] ✅ 2026-05-15 Task 0.7 — SQLite schema + migration script
 - **Files:** `db/schema.sql`, `db/migrate.py`, `db/migrations/0001_init.sql`, `agents/tests/test_schema.py`
 - **Depends on:** 0.3
 - **Acceptance:**
@@ -684,7 +684,7 @@ Every agent session on this repo must follow this loop:
 
 ---
 
-### - [ ] Task 0.8 — `docs/AUTONOMY.md` + update `CLAUDE.md` and `LEGAL_DISCLAIMER.md`
+### - [x] ✅ 2026-05-15 Task 0.8 — `docs/AUTONOMY.md` + update `CLAUDE.md` and `LEGAL_DISCLAIMER.md`
 - **Files:** `docs/AUTONOMY.md`, `CLAUDE.md` (append section, do not rewrite), `LEGAL_DISCLAIMER.md` (append section), `config/profile.yml` (add `autonomy:` block)
 - **Depends on:** —
 - **Acceptance:**
@@ -1165,6 +1165,7 @@ Every agent session on this repo must follow this loop:
 | 2026-05-15 | Greenfield scaffold in `akulasaivineeth/Career-ops-autonomus` | Upstream `santifer/career-ops` Node/Go tree not vendored yet; `npm run doctor` checks repo layout until merge | Track in Decision Log until submodule or port |
 | 2026-05-15 | Feature branch `cursor/foundations-scaffold-6b71` | Cloud agent policy requires `cursor/*-6b71` naming instead of `feat/autonomous-applier` from Task −1.1 | Parallel naming OK for automation |
 | 2026-05-15 | `pysqlcipher3` / `sqlite-vec` as optional extras | Keeps default `uv sync` portable on CI without libsqlcipher headers; enable `[crypto]` when host ready (BUILD Task 5.1) | Revisit before encrypting DB |
+| 2026-05-15 | Phase 0 tasks 0.2–0.8 marked complete before Task 0.1 | This fork develops without a full `nix develop`/`flake.lock` in CI; Task 0.1 remains the next hardening step on a Nix-capable host | Finish 0.1 before claiming cold-start −1.x complete |
 
 > **Add new entries** when you make any architectural choice that differs from the architecture doc or this plan.
 

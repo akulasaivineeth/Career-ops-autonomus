@@ -15,3 +15,10 @@ When autonomy features are enabled (`docs/AUTONOMY.md`, future releases), the sy
 ## No warranty
 
 The software is provided **as-is** without warranty of fitness for a particular purpose. Use at your own risk.
+
+## Platform-specific automation risks
+
+- **LinkedIn:** Use only legitimate logged-in sessions and product flows you are permitted to use (e.g. Easy Apply where applicable). Do **not** scrape member profiles or circumvent technical controls. Respect rate limits in `docs/AUTONOMY.md` / architecture doc §E.
+- **Workday and similar enterprise ATS:** Anti-bot systems may lock accounts. Prefer conservative cadence, persistent browser contexts, and human escalation on repeated challenges.
+- **One human, one identity:** No parallel fake identities, no proxy rotation to multiply accounts, and no evasion of vendor enforcement signals (see architecture §E.2).
+

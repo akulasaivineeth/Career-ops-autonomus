@@ -21,6 +21,9 @@ jobs:
           uv run ruff check agents bridge
           uv run ruff format --check agents bridge
 
+      - name: Apply DB migrations
+        run: uv run python -m db.migrate
+
       - name: Tests
         run: uv run pytest -q
 

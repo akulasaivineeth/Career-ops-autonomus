@@ -14,6 +14,9 @@ const required = [
   "agents/__init__.py",
   "bridge/server.py",
   "flake.nix",
+  "db/migrate.py",
+  "db/migrations/0001_init.sql",
+  "config/profile.yml",
 ];
 
 let failed = false;

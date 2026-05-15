@@ -8,8 +8,7 @@ help:
 	@echo "  make health       — curl local /health (bridge must be running)"
 
 oauth-gmail:
-	@echo "Stub: implement with \`uv run python -m agents.tools.gmail\` per BUILD.md Task 0.5"
-	@exit 1
+	uv run python -m agents.tools.gmail
 
 bridge:
 	uv run python -m bridge

@@ -6,7 +6,33 @@ Runs on localhost only by default — never expose raw to the public internet wi
 
 from __future__ import annotations
 
+import os
+import subprocess
+from pathlib import Path
+
 from fastapi import FastAPI
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _git_short_sha() -> str:
+    if sha := os.environ.get("GITHUB_SHA"):
+        return sha[:7]
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=_REPO_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+        if proc.returncode == 0:
+            return proc.stdout.strip()
+    except OSError:
+        pass
+    return "dev"
+
 
 app = FastAPI(
     title="Career Ops Bridge",
@@ -16,6 +42,6 @@ app = FastAPI(
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    """Liveness probe for launchd / CI / dashboard integrations."""
-    return {"status": "ok"}
+def health() -> dict[str, bool | str]:
+    """Liveness: ``ok`` + ``version`` (git short SHA when available). BUILD.md Task 0.6."""
+    return {"ok": True, "version": _git_short_sha()}

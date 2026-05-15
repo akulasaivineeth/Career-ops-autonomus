@@ -1,0 +1,29 @@
+# Local profile (no secrets). Adjust for your search targets and autonomy posture.
+
+identity:
+  display_name: ""
+
+targets:
+  roles: []
+
+comp:
+  currency: USD
+
+autonomy:
+  level: 1
+  rules:
+    submit_gate: hitl
+    account_creation: hitl
+    twofa: hitl
+    pdf_review: auto_if_track_stable
+    captcha_after_3_fail: hitl
+    new_site_first_time: hitl_always
+
+tracks:
+  da: []
+  mle: []
+  de: []
+
+gmail_account: ""
+whatsapp_number: ""
+proxy_pool: []
