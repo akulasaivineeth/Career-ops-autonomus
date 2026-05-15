@@ -14,6 +14,15 @@ audit/*
 db/careerops.db
 db/careerops.db-*
 !db/.gitkeep
+jds/*.txt
+reports/*.md
+!jds/.gitkeep
+!reports/.gitkeep
+data/applications.md
+data/pipeline.md
+data/scan-history.tsv
+data/follow-ups.md
+!data/.gitkeep
 
 # Browser persistent contexts (live in ~/Library on macOS — defensive ignore)
 browser-context/

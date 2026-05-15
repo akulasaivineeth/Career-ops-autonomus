@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# career-apply <jd_id_or_url>  — dispatch one application via the bridge
+# BUILD.md Task 1.8
+
+set -euo pipefail
+
+BRIDGE_URL="${CAREEROPS_BRIDGE_URL:-http://127.0.0.1:8765}"
+JD="$1"
+
+if ! curl -sf "$BRIDGE_URL/health" >/dev/null; then
+  echo "Bridge not running. Start it with: uv run python -m bridge" >&2
+  exit 1
+fi
+
+if [[ "$JD" == http* ]]; then
+  JD_URL="$JD"
+  JD_ID="$(echo "$JD" | md5sum | cut -c1-8)"
+else
+  JD_ID="$JD"
+  JD_URL=""
+fi
+
+RESP=$(curl -sf -X POST "$BRIDGE_URL/run" \
+  -H "Content-Type: application/json" \
+  -d "{\"jd_id\":\"$JD_ID\",\"jd_url\":\"$JD_URL\"}")
+
+RUN_ID=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['run_id'])")
+echo "Started run: $RUN_ID"
+echo "Poll state: curl $BRIDGE_URL/state/$RUN_ID"
+echo "Approve:    curl -X POST $BRIDGE_URL/approve/$RUN_ID"
+echo "Reject:     curl -X POST $BRIDGE_URL/reject/$RUN_ID"

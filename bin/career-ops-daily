@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Daily pipeline: scan → score → enqueue applies (HITL still required).
+# BUILD.md Task 3.5
+
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_DIR"
+
+echo "[$(date)] career-ops-daily starting"
+
+# 1. Start bridge (background) if not running
+if ! curl -sf http://127.0.0.1:8765/health >/dev/null 2>&1; then
+  uv run python -m bridge &
+  sleep 2
+fi
+
+# 2. Scan for new JDs
+uv run python -c "
+from agents.workers.scanner import scan_all
+import yaml, json
+profile = yaml.safe_load(open('config/profile.yml'))
+result = scan_all()
+print(json.dumps(result, indent=2))
+"
+
+# 3. Score and enqueue candidates (bridge dispatches HITL gates automatically)
+uv run python -c "
+import sys
+from pathlib import Path
+pipeline = Path('data/pipeline.md')
+if not pipeline.exists():
+    print('No pipeline.md found.')
+    sys.exit(0)
+# Parse queued JDs and POST to bridge
+import re, httpx
+queued = re.findall(r'\|\s*(JD-[^\|]+)\s*\|[^\|]+\|[^\|]+\|[^\|]+\|\s*queued\s*\|([^\|]+)\|', pipeline.read_text())
+for jd_id, url in queued[:5]:  # limit to 5 per run at level 1
+    resp = httpx.post('http://127.0.0.1:8765/run', json={'jd_id': jd_id.strip(), 'jd_url': url.strip()}, timeout=10)
+    print(f'Queued {jd_id.strip()}: {resp.json()}')
+"
+
+echo "[$(date)] career-ops-daily done"
