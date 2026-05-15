@@ -1,0 +1,71 @@
+[project]
+name = "career-ops-autonomus"
+version = "0.1.0"
+description = "Autonomous multi-agent job application OS — Python orchestrator (see BUILD.md)."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "Proprietary" }
+authors = [{ name = "Career-ops contributors" }]
+
+dependencies = [
+  "anthropic>=0.40",
+  "fastapi>=0.115",
+  "google-api-python-client>=2.150",
+  "google-auth-oauthlib>=1.2",
+  "httpx>=0.27",
+  "keyring>=25.7",
+  "langchain-anthropic>=0.3",
+  "langchain-ollama>=0.2",
+  "langgraph>=0.4",
+  "nanoid>=2.0",
+  "playwright>=1.49",
+  "playwright-stealth>=2.0.2",
+  "pydantic>=2",
+  "python-dotenv>=1.0",
+  "structlog>=24.4",
+  "tenacity>=9.0",
+  "uvicorn[standard]>=0.32",
+]
+
+[project.optional-dependencies]
+# SQLCipher bindings are compiled against libsqlcipher; enable when host has headers (BUILD.md Task 5.1).
+crypto = ["pysqlcipher3", "sqlite-vec"]
+
+[dependency-groups]
+dev = [
+  "mypy>=1.13",
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-mock>=3.14",
+  "ruff>=0.8",
+  "types-requests>=2.32",
+]
+
+[project.scripts]
+career-ops-bridge = "bridge.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["agents", "bridge"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["agents", "bridge"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["agents", "bridge"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["agents/tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

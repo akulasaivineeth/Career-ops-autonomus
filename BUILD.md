@@ -1162,6 +1162,9 @@ Every agent session on this repo must follow this loop:
 | 2026-05-12 | Markdown files remain source of truth; SQLite is operational mirror | Honors existing `DATA_CONTRACT.md`; preserves user-edit primacy | — |
 | 2026-05-12 | No proxies, no fake accounts, no parallel sessions in Phase 1–4 | Conservative ToS posture; one human, one identity | Revisit only if home IP blocks repeatedly |
 | 2026-05-12 | Repo lives at `~/code/career-ops` by convention | Standard macOS dev path; matches `direnv` / `nix develop` ergonomics | User can override at clone time |
+| 2026-05-15 | Greenfield scaffold in `akulasaivineeth/Career-ops-autonomus` | Upstream `santifer/career-ops` Node/Go tree not vendored yet; `npm run doctor` checks repo layout until merge | Track in Decision Log until submodule or port |
+| 2026-05-15 | Feature branch `cursor/foundations-scaffold-6b71` | Cloud agent policy requires `cursor/*-6b71` naming instead of `feat/autonomous-applier` from Task −1.1 | Parallel naming OK for automation |
+| 2026-05-15 | `pysqlcipher3` / `sqlite-vec` as optional extras | Keeps default `uv sync` portable on CI without libsqlcipher headers; enable `[crypto]` when host ready (BUILD Task 5.1) | Revisit before encrypting DB |
 
 > **Add new entries** when you make any architectural choice that differs from the architecture doc or this plan.
 

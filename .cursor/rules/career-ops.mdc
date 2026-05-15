@@ -1,0 +1,12 @@
+---
+description: Career-ops autonomous applier — read BUILD.md and honor hard rules
+alwaysApply: true
+---
+
+# Career-ops (this repo)
+
+- At session start, read **`BUILD.md`** (task order, verify commands, Secret-Prompt Protocol, hard rules).
+- Honor **`AGENTS.md`**, **`DATA_CONTRACT.md`**, **`LEGAL_DISCLAIMER.md`** for data and submission guardrails.
+- Never commit secrets, `db/careerops.db*`, `audit/`, `output/` PDFs, or `.env`.
+- Do not click final-submit on live job sites during development; applier must use HITL gates.
+- Python: **`uv`** only (no global pip installs). Node: project-local `npm` scripts.

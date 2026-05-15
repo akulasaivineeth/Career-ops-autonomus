@@ -1,0 +1,11 @@
+{
+  "name": "career-ops-autonomus",
+  "private": true,
+  "description": "Companion Node scripts land here when upstream santifer/career-ops tooling is vendored (BUILD.md).",
+  "scripts": {
+    "doctor": "node scripts/doctor.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

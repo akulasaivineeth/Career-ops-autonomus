@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# uv
+.uv/
+
+# Project runtime artifacts
+output/*.pdf
+output/*.html
+audit/*
+!audit/.gitkeep
+db/careerops.db
+db/careerops.db-*
+!db/.gitkeep
+
+# Browser persistent contexts (live in ~/Library on macOS — defensive ignore)
+browser-context/
+
+# Secrets / OAuth
+.env
+.env.*
+!.env.example
+*credentials*.json
+*.session
+storage_state.json
+
+# Test artifacts
+playwright-report/
+test-results/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editor
+.idea/
+.vscode/
+*.swp
