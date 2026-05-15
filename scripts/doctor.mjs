@@ -12,6 +12,8 @@ const required = [
   "BUILD.md",
   "pyproject.toml",
   "agents/__init__.py",
+  "agents/orchestrator/graph.py",
+  "agents/orchestrator/state.py",
   "bridge/server.py",
   "flake.nix",
   "db/migrate.py",

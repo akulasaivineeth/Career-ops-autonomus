@@ -8,10 +8,10 @@
 
 | Field | Value |
 |---|---|
-| **Phase** | Phase 0 — Foundations (Nix flake lock + Ollama still pending Task 0.1) |
+| **Phase** | Phase 1 — MVP applier (skeleton landed; Nix Task 0.1 still open) |
 | **Last updated** | 2026-05-15 |
 | **Active task** | None |
-| **Completed tasks** | 7 / 48 (Phase 0 tasks 0.2–0.8 done on this fork; see Decision Log) |
+| **Completed tasks** | 8 / 48 (through Task 1.1 skeleton on this fork; see Decision Log) |
 | **Blockers** | None |
 | **Autonomy level** | 0 (build mode; no live applies yet) |
 | **Repo cloned?** | ✅ `Career-ops-autonomus` (fork scaffold; upstream `santifer/career-ops` optional) |
@@ -20,9 +20,9 @@
 
 ### 🎯 Now / Next / Later
 
-- **Now:** Task 0.1 (extend `flake.nix` + commit `flake.lock` + Ollama) **or** Phase −1 cold start on macOS
-- **Next:** Task 1.1 (LangGraph skeleton) once 0.1 and −1.x are green on your machine
-- **Later:** Phase 1 MVP applier
+- **Now:** Task 1.2 (scorer worker) or Task 0.1 (Nix + `flake.lock`)
+- **Next:** Tailor worker (1.3), adapters (1.4+)
+- **Later:** Phase 1 MVP apply path
 
 ---
 
@@ -705,7 +705,7 @@ Every agent session on this repo must follow this loop:
 
 ---
 
-### - [ ] Task 1.1 — LangGraph orchestrator skeleton with `SqliteSaver`
+### - [x] ✅ 2026-05-15 Task 1.1 — LangGraph orchestrator skeleton with `SqliteSaver`
 - **Files:** `agents/orchestrator/graph.py`, `agents/orchestrator/state.py`, `agents/tests/test_graph_smoke.py`
 - **Depends on:** 0.7, 0.6
 - **Acceptance:**
@@ -1165,7 +1165,7 @@ Every agent session on this repo must follow this loop:
 | 2026-05-15 | Greenfield scaffold in `akulasaivineeth/Career-ops-autonomus` | Upstream `santifer/career-ops` Node/Go tree not vendored yet; `npm run doctor` checks repo layout until merge | Track in Decision Log until submodule or port |
 | 2026-05-15 | Feature branch `cursor/foundations-scaffold-6b71` | Cloud agent policy requires `cursor/*-6b71` naming instead of `feat/autonomous-applier` from Task −1.1 | Parallel naming OK for automation |
 | 2026-05-15 | `pysqlcipher3` / `sqlite-vec` as optional extras | Keeps default `uv sync` portable on CI without libsqlcipher headers; enable `[crypto]` when host ready (BUILD Task 5.1) | Revisit before encrypting DB |
-| 2026-05-15 | Phase 0 tasks 0.2–0.8 marked complete before Task 0.1 | This fork develops without a full `nix develop`/`flake.lock` in CI; Task 0.1 remains the next hardening step on a Nix-capable host | Finish 0.1 before claiming cold-start −1.x complete |
+| 2026-05-15 | `langgraph-checkpoint-sqlite` added for `SqliteSaver` | Upstream docs referenced `langgraph.checkpoint.sqlite`; package now ships as extra dependency (LangGraph 1.2+) | Keep version aligned with `langgraph` releases |
 
 > **Add new entries** when you make any architectural choice that differs from the architecture doc or this plan.
 
