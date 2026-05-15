@@ -39,6 +39,7 @@ def test_upsert_idempotent(workdir: Path) -> None:
     for status in ("queued", "applying", "submitted"):
         upsert_application(run_id="run-002", company="Beta", apply_status=status)
     import openpyxl
+
     wb = openpyxl.load_workbook(workdir / "applications.xlsx")
     ws = wb.active
     rows = [
@@ -53,6 +54,7 @@ def test_update_status(workdir: Path) -> None:
     upsert_application(run_id="run-003", company="Gamma", apply_status="queued")
     update_status("run-003", "submitted")
     import openpyxl
+
     wb = openpyxl.load_workbook(workdir / "applications.xlsx")
     ws = wb.active
     hdr = {ws.cell(row=1, column=c).value: c for c in range(1, ws.max_column + 1)}
@@ -63,14 +65,27 @@ def test_update_status(workdir: Path) -> None:
 
 
 def test_add_pipeline_jd(workdir: Path) -> None:
-    add_pipeline_jd(jd_id="JD-001", company="Delta", role_title="DE", source="greenhouse", jd_url="https://x.com")
+    add_pipeline_jd(
+        jd_id="JD-001",
+        company="Delta",
+        role_title="DE",
+        source="greenhouse",
+        jd_url="https://x.com",
+    )
     assert (workdir / "pipeline.xlsx").exists()
 
 
 def test_add_pipeline_idempotent(workdir: Path) -> None:
     for _ in range(3):
-        add_pipeline_jd(jd_id="JD-002", company="Epsilon", role_title="MLE", source="lever", jd_url="https://y.com")
+        add_pipeline_jd(
+            jd_id="JD-002",
+            company="Epsilon",
+            role_title="MLE",
+            source="lever",
+            jd_url="https://y.com",
+        )
     import openpyxl
+
     wb = openpyxl.load_workbook(workdir / "pipeline.xlsx")
     ws = wb.active
     rows = [
@@ -82,9 +97,12 @@ def test_add_pipeline_idempotent(workdir: Path) -> None:
 
 
 def test_update_pipeline_status(workdir: Path) -> None:
-    add_pipeline_jd(jd_id="JD-003", company="Zeta", role_title="DA", source="ashby", jd_url="https://z.com")
+    add_pipeline_jd(
+        jd_id="JD-003", company="Zeta", role_title="DA", source="ashby", jd_url="https://z.com"
+    )
     update_pipeline_status("JD-003", "applying")
     import openpyxl
+
     wb = openpyxl.load_workbook(workdir / "pipeline.xlsx")
     ws = wb.active
     hdr = {ws.cell(row=1, column=c).value: c for c in range(1, ws.max_column + 1)}
@@ -96,6 +114,7 @@ def test_update_pipeline_status(workdir: Path) -> None:
 def test_sync_from_empty_db(workdir: Path, tmp_path: Path) -> None:
     db = tmp_path / "empty.db"
     from db.migrate import apply_migrations
+
     apply_migrations(db)
     monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(t_mod, "_DB_PATH", db)

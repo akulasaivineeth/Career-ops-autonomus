@@ -1,0 +1,27 @@
+# Canonical application statuses (DATA_CONTRACT.md).
+# Used by normalize-statuses.mjs, the orchestrator, and the Excel tracker.
+
+# ── Existing upstream statuses ────────────────────────────────────────────────
+statuses:
+  - not_started
+  - in_progress
+  - applied
+  - phone_screen
+  - interview
+  - offer
+  - rejected
+  - withdrawn
+
+# ── New statuses added by Python orchestrator (BUILD.md Task 1.9) ─────────────
+apply_statuses:
+  - apply_queued        # JD added to pipeline, awaiting scorer
+  - scoring             # Scorer agent running
+  - score_borderline    # Score 4.0–4.4: HITL required even at autonomy 3
+  - rejected_auto       # Score < 4.0 or kill signal: no PDF generated
+  - tailoring           # Tailor agent generating PDF + cover letter
+  - awaiting_approval   # HITL gate open (WhatsApp message sent)
+  - applying            # Browser filling the form
+  - awaiting_2fa        # 2FA challenge: polling Gmail or waiting for user
+  - submitted           # Applier clicked submit; Verifier confirms
+  - apply_failed        # Error during apply (no submission made)
+  - paused              # Bridge restarted mid-run; resume manually

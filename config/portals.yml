@@ -1,0 +1,63 @@
+# Company portals for the Scanner agent (BUILD.md Task 3.1).
+# Format: slug is used for Greenhouse/Lever/Ashby API; type controls the fetch method.
+
+# ── Greenhouse boards API ────────────────────────────────────────────────────
+greenhouse:
+  - slug: stripe
+  - slug: openai
+  - slug: anthropic
+  - slug: databricks
+  - slug: snowflake
+  - slug: airbnb
+  - slug: github
+  - slug: figma
+  - slug: notion
+  - slug: linear
+  - slug: vercel
+  - slug: hashicorp
+  - slug: confluent
+  - slug: mongodb
+  - slug: elastic
+  - slug: twilio
+  - slug: sendgrid
+  - slug: squarespace
+  - slug: canva
+  - slug: asana
+
+# ── Lever postings API ───────────────────────────────────────────────────────
+lever:
+  - slug: netflix
+  - slug: coinbase
+  - slug: robinhood
+  - slug: duolingo
+  - slug: lyft
+  - slug: cloudflare
+  - slug: notion
+  - slug: retool
+  - slug: airtable
+  - slug: scale-ai
+
+# ── Ashby GraphQL ────────────────────────────────────────────────────────────
+ashby:
+  - slug: loom
+  - slug: mercury
+  - slug: ramp
+  - slug: coda
+  - slug: brex
+
+# ── Generic Playwright (company career pages) ────────────────────────────────
+playwright:
+  - name: Apple
+    url: https://jobs.apple.com/en-us/search?team=machine-learning-and-ai
+  - name: Google DeepMind
+    url: https://deepmind.google/careers/
+  - name: Meta AI
+    url: https://www.metacareers.com/jobs/?teams%5B0%5D=AI%20%26%20Machine%20Learning
+
+# ── Query templates for public LinkedIn JD search (logged-out) ───────────────
+linkedin_queries:
+  - "senior ML engineer remote"
+  - "staff data scientist machine learning"
+  - "senior data engineer spark"
+  - "machine learning platform engineer"
+  - "LLM engineer fine-tuning"

@@ -43,5 +43,5 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.22"
-      - run: go build -o /tmp/career-dashboard-test .
+      - run: go build ./...
         working-directory: dashboard

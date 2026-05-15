@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Career Ops — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); }
+    .glow-green  { box-shadow: 0 0 20px rgba(34,197,94,0.15); }
+    .glow-yellow { box-shadow: 0 0 20px rgba(234,179,8,0.15); }
+    .glow-blue   { box-shadow: 0 0 20px rgba(99,102,241,0.15); }
+    .glow-red    { box-shadow: 0 0 20px rgba(239,68,68,0.15); }
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius:9px; }
+  </style>
+</head>
+<body class="h-full text-slate-100 font-sans antialiased" x-data="app()" x-init="init()">
+
+<!-- ── top nav ────────────────────────────────────────────────────────────── -->
+<nav class="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-3 glass border-b border-slate-800">
+  <div class="flex items-center gap-3">
+    <span class="text-xl">🤖</span>
+    <span class="font-semibold text-slate-100 tracking-tight">Career Ops</span>
+    <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-600 text-white">local</span>
+  </div>
+  <div class="flex items-center gap-4 text-sm text-slate-400">
+    <span x-text="'Refreshed ' + lastRefresh"></span>
+    <button @click="refresh()" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">↻ Refresh</button>
+    <span :class="bridgeOnline ? 'text-green-400' : 'text-red-400'" class="flex items-center gap-1">
+      <span class="w-2 h-2 rounded-full inline-block" :class="bridgeOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'"></span>
+      Bridge <span x-text="bridgeOnline ? 'online' : 'offline'"></span>
+    </span>
+  </div>
+</nav>
+
+<!-- ── sidebar tabs ───────────────────────────────────────────────────────── -->
+<aside class="fixed inset-y-0 left-0 z-40 flex flex-col w-52 glass border-r border-slate-800 pt-14">
+  <nav class="flex flex-col gap-1 p-3 flex-1">
+    <template x-for="tab in tabs" :key="tab.id">
+      <button
+        @click="active = tab.id"
+        :class="active === tab.id ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition text-left">
+        <span x-text="tab.icon"></span>
+        <span x-text="tab.label"></span>
+        <span x-show="tab.badge" x-text="tab.badge" class="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5"></span>
+      </button>
+    </template>
+  </nav>
+  <div class="p-3 text-xs text-slate-600 border-t border-slate-800">
+    v{{ version }} · {{ db_tables }} tables
+  </div>
+</aside>
+
+<!-- ── main ───────────────────────────────────────────────────────────────── -->
+<main class="ml-52 pt-14 min-h-screen">
+
+  <!-- ── OVERVIEW ─────────────────────────────────────────────────────────── -->
+  <section x-show="active === 'overview'" x-cloak class="p-6 space-y-6">
+    <h2 class="text-lg font-semibold text-slate-200">Overview</h2>
+
+    <!-- KPI cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass rounded-2xl p-5 glow-blue">
+        <p class="text-xs text-slate-500 uppercase tracking-widest">Total Runs</p>
+        <p class="text-4xl font-bold text-slate-100 mt-1" x-text="stats.total ?? '—'"></p>
+      </div>
+      <div class="glass rounded-2xl p-5 glow-green">
+        <p class="text-xs text-slate-500 uppercase tracking-widest">Submitted</p>
+        <p class="text-4xl font-bold text-green-400 mt-1" x-text="stats.submitted ?? '—'"></p>
+      </div>
+      <div class="glass rounded-2xl p-5 glow-yellow">
+        <p class="text-xs text-slate-500 uppercase tracking-widest">Pending Approval</p>
+        <p class="text-4xl font-bold text-yellow-400 mt-1" x-text="stats.pending ?? '—'"></p>
+      </div>
+      <div class="glass rounded-2xl p-5 glow-red">
+        <p class="text-xs text-slate-500 uppercase tracking-widest">Response Rate</p>
+        <p class="text-4xl font-bold text-indigo-400 mt-1" x-text="(stats.response_rate ?? 0) + '%'"></p>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="glass rounded-2xl p-5 col-span-2">
+        <p class="text-sm font-semibold text-slate-300 mb-4">📅 Activity (last 7 days)</p>
+        <canvas id="activityChart" height="90"></canvas>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-sm font-semibold text-slate-300 mb-4">🏢 By ATS</p>
+        <canvas id="atsChart" height="160"></canvas>
+      </div>
+    </div>
+
+    <!-- Score distribution -->
+    <div class="glass rounded-2xl p-5">
+      <p class="text-sm font-semibold text-slate-300 mb-4">📊 Score Distribution</p>
+      <canvas id="scoreChart" height="60"></canvas>
+    </div>
+  </section>
+
+  <!-- ── RUNS ──────────────────────────────────────────────────────────────── -->
+  <section x-show="active === 'runs'" x-cloak class="p-6 space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-slate-200">Recent Runs</h2>
+      <input x-model="runSearch" placeholder="Search…" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-sm border border-slate-700 focus:outline-none focus:border-indigo-500 w-56" />
+    </div>
+    <div class="glass rounded-2xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs text-slate-500 uppercase tracking-widest border-b border-slate-800">
+            <th class="text-left p-4">Run ID</th>
+            <th class="text-left p-4">JD</th>
+            <th class="text-left p-4">Track</th>
+            <th class="text-left p-4">Score</th>
+            <th class="text-left p-4">ATS</th>
+            <th class="text-left p-4">Status</th>
+            <th class="text-left p-4">Age</th>
+            <th class="p-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="run in filteredRuns" :key="run.run_id">
+            <tr class="border-b border-slate-800/50 hover:bg-white/[0.02] transition">
+              <td class="p-4 font-mono text-xs text-slate-400" x-text="run.run_id.slice(0,12)+'…'"></td>
+              <td class="p-4 max-w-xs truncate">
+                <a :href="run.jd_url || '#'" target="_blank" class="text-indigo-400 hover:text-indigo-300 underline underline-offset-2" x-text="run.jd_id"></a>
+              </td>
+              <td class="p-4"><span class="px-2 py-0.5 rounded bg-slate-800 text-xs" x-text="run.track"></span></td>
+              <td class="p-4 font-semibold" :class="parseFloat(run.score) >= 4.5 ? 'text-green-400' : parseFloat(run.score) >= 4.0 ? 'text-yellow-400' : 'text-slate-400'" x-text="run.score"></td>
+              <td class="p-4 text-slate-400 text-xs" x-text="run.ats"></td>
+              <td class="p-4">
+                <span :class="run.badge.cls" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium">
+                  <span x-text="run.badge.icon"></span>
+                  <span x-text="run.badge.label"></span>
+                </span>
+              </td>
+              <td class="p-4 text-slate-500 text-xs" x-text="run.age"></td>
+              <td class="p-4 flex gap-2 justify-center">
+                <button @click="approve(run.run_id)" x-show="run.status === 'awaiting_approval'" class="px-2 py-1 text-xs rounded bg-green-700 hover:bg-green-600 text-white transition">Approve</button>
+                <button @click="reject(run.run_id)"  x-show="run.status === 'awaiting_approval'" class="px-2 py-1 text-xs rounded bg-red-800 hover:bg-red-700 text-white transition">Reject</button>
+              </td>
+            </tr>
+          </template>
+          <tr x-show="filteredRuns.length === 0">
+            <td colspan="8" class="p-8 text-center text-slate-600">No runs yet — start with <code class="bg-slate-800 px-1 rounded">bin/career-apply &lt;url&gt;</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── APPROVALS ─────────────────────────────────────────────────────────── -->
+  <section x-show="active === 'approvals'" x-cloak class="p-6 space-y-4">
+    <h2 class="text-lg font-semibold text-slate-200">⏳ Pending Approvals</h2>
+    <div x-show="approvals.length === 0" class="glass rounded-2xl p-10 text-center text-slate-600">All clear — no pending gates.</div>
+    <div class="grid gap-4">
+      <template x-for="ap in approvals" :key="ap.run_id + ap.gate">
+        <div class="glass rounded-2xl p-5 border border-yellow-500/20">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-sm font-semibold text-yellow-300" x-text="'Gate: ' + ap.gate.toUpperCase()"></p>
+              <p class="text-xs text-slate-400 mt-1 font-mono" x-text="ap.run_id"></p>
+              <p class="text-xs text-slate-500 mt-1" x-text="'Sent ' + ap.sent"></p>
+            </div>
+            <div class="flex gap-3">
+              <button @click="approve(ap.run_id)" class="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition">✅ Approve</button>
+              <button @click="reject(ap.run_id)"  class="px-4 py-2 rounded-xl bg-red-700 hover:bg-red-600 text-white text-sm font-semibold transition">❌ Reject</button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </section>
+
+  <!-- ── PIPELINE ───────────────────────────────────────────────────────────── -->
+  <section x-show="active === 'pipeline'" x-cloak class="p-6 space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-slate-200">📋 JD Pipeline</h2>
+      <input x-model="pipeSearch" placeholder="Search…" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-sm border border-slate-700 focus:outline-none focus:border-indigo-500 w-56" />
+    </div>
+    <div class="glass rounded-2xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs text-slate-500 uppercase tracking-widest border-b border-slate-800">
+            <th class="text-left p-4">JD ID</th>
+            <th class="text-left p-4">Company</th>
+            <th class="text-left p-4">Role</th>
+            <th class="text-left p-4">Source</th>
+            <th class="text-left p-4">Status</th>
+            <th class="text-left p-4">Added</th>
+            <th class="p-4">Apply</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="jd in filteredPipeline" :key="jd.jd_id">
+            <tr class="border-b border-slate-800/50 hover:bg-white/[0.02] transition">
+              <td class="p-4 font-mono text-xs text-slate-400" x-text="jd.jd_id"></td>
+              <td class="p-4 font-medium" x-text="jd.company || '—'"></td>
+              <td class="p-4 text-slate-300 max-w-xs truncate" x-text="jd.role || '—'"></td>
+              <td class="p-4"><span class="px-2 py-0.5 rounded bg-slate-800 text-xs text-slate-400" x-text="jd.source"></span></td>
+              <td class="p-4">
+                <span :class="jd.badge.cls" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium">
+                  <span x-text="jd.badge.icon"></span>
+                  <span x-text="jd.badge.label"></span>
+                </span>
+              </td>
+              <td class="p-4 text-slate-500 text-xs" x-text="jd.date"></td>
+              <td class="p-4 text-center">
+                <button @click="dispatchRun(jd.jd_id, jd.url)" x-show="jd.status === 'queued'" class="px-3 py-1 text-xs rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white transition">▶ Apply</button>
+              </td>
+            </tr>
+          </template>
+          <tr x-show="filteredPipeline.length === 0">
+            <td colspan="7" class="p-8 text-center text-slate-600">Pipeline is empty — scanner will populate it.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── REPORTS ───────────────────────────────────────────────────────────── -->
+  <section x-show="active === 'reports'" x-cloak class="p-6 space-y-4">
+    <h2 class="text-lg font-semibold text-slate-200">📄 Score Reports</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <template x-for="rep in reports" :key="rep.name">
+        <div class="glass rounded-2xl p-4 hover:border-indigo-500/40 transition border border-transparent">
+          <p class="font-mono text-xs text-slate-400 truncate" x-text="rep.name"></p>
+          <div class="flex items-center justify-between mt-2">
+            <p class="text-2xl font-bold" :class="parseFloat(rep.score) >= 4.5 ? 'text-green-400' : parseFloat(rep.score) >= 4.0 ? 'text-yellow-400' : 'text-slate-400'" x-text="rep.score"></p>
+            <p class="text-xs text-slate-500" x-text="rep.age"></p>
+          </div>
+        </div>
+      </template>
+      <div x-show="reports.length === 0" class="col-span-3 glass rounded-2xl p-10 text-center text-slate-600">No score reports yet.</div>
+    </div>
+  </section>
+
+  <!-- ── SECRETS ───────────────────────────────────────────────────────────── -->
+  <section x-show="active === 'secrets'" x-cloak class="p-6 space-y-4">
+    <h2 class="text-lg font-semibold text-slate-200">🔑 Secrets Status</h2>
+    <p class="text-sm text-slate-500">Read-only check — values are never shown. Store via Keychain on your Mac.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <template x-for="s in secrets" :key="s.name">
+        <div class="glass rounded-xl p-4 flex items-center gap-3">
+          <span x-text="s.ok ? '✅' : '❌'" class="text-lg"></span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-slate-200" x-text="s.label"></p>
+            <p class="text-xs text-slate-500 font-mono truncate" x-text="s.service + ' / ' + s.account"></p>
+          </div>
+          <span :class="s.ok ? 'text-green-400' : 'text-red-400'" class="text-xs" x-text="s.ok ? 'stored' : 'missing'"></span>
+        </div>
+      </template>
+    </div>
+  </section>
+
+</main>
+
+<!-- toast -->
+<div x-show="toast" x-cloak x-transition.opacity class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl glass text-sm text-slate-200 shadow-xl border border-slate-700" x-text="toast"></div>
+
+<script>
+function app() {
+  return {
+    active: 'overview',
+    toast: '',
+    lastRefresh: 'never',
+    bridgeOnline: false,
+    stats: {},
+    runs: [],
+    approvals: [],
+    pipeline: [],
+    reports: [],
+    secrets: [],
+    charts: {},
+    runSearch: '',
+    pipeSearch: '',
+    tabs: [
+      { id: 'overview',  icon: '🏠', label: 'Overview',  badge: null },
+      { id: 'runs',      icon: '📦', label: 'Runs',      badge: null },
+      { id: 'approvals', icon: '⏳', label: 'Approvals', badge: null },
+      { id: 'pipeline',  icon: '📋', label: 'Pipeline',  badge: null },
+      { id: 'reports',   icon: '📄', label: 'Reports',   badge: null },
+      { id: 'secrets',   icon: '🔑', label: 'Secrets',   badge: null },
+    ],
+
+    get filteredRuns() {
+      if (!this.runSearch) return this.runs;
+      const q = this.runSearch.toLowerCase();
+      return this.runs.filter(r =>
+        r.run_id.includes(q) || r.jd_id.toLowerCase().includes(q) ||
+        r.ats.toLowerCase().includes(q) || r.track.toLowerCase().includes(q) ||
+        r.status.toLowerCase().includes(q)
+      );
+    },
+
+    get filteredPipeline() {
+      if (!this.pipeSearch) return this.pipeline;
+      const q = this.pipeSearch.toLowerCase();
+      return this.pipeline.filter(j =>
+        j.company.toLowerCase().includes(q) || j.role.toLowerCase().includes(q) ||
+        j.jd_id.toLowerCase().includes(q) || j.source.toLowerCase().includes(q)
+      );
+    },
+
+    init() {
+      this.refresh();
+      setInterval(() => this.refresh(), 30000); // auto-refresh every 30s
+    },
+
+    async refresh() {
+      try {
+        const res = await fetch('/api/dashboard');
+        const d = await res.json();
+        this.bridgeOnline = true;
+        this.stats    = d.stats;
+        this.runs     = d.runs;
+        this.approvals = d.approvals;
+        this.pipeline = d.pipeline;
+        this.reports  = d.reports;
+        this.secrets  = d.secrets;
+        this.lastRefresh = new Date().toLocaleTimeString();
+
+        // update approval badge
+        this.tabs.find(t => t.id === 'approvals').badge = this.approvals.length || null;
+
+        this.$nextTick(() => this.buildCharts(d));
+      } catch {
+        this.bridgeOnline = false;
+      }
+    },
+
+    buildCharts(d) {
+      this.buildBar('activityChart', d.week_activity.labels, d.week_activity.data,
+        'rgba(99,102,241,0.7)', 'rgba(99,102,241,1)', 'Applications per day');
+
+      this.buildBar('scoreChart', d.score_chart.labels, d.score_chart.data,
+        d.score_chart.colors, d.score_chart.colors, 'Count');
+
+      this.buildDoughnut('atsChart', d.ats_chart.labels, d.ats_chart.data, d.ats_chart.colors);
+    },
+
+    buildBar(id, labels, data, bg, border, label) {
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      if (this.charts[id]) { this.charts[id].destroy(); }
+      this.charts[id] = new Chart(canvas, {
+        type: 'bar',
+        data: { labels, datasets: [{ label, data, backgroundColor: bg, borderColor: border, borderRadius: 6 }] },
+        options: {
+          responsive: true, plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } },
+            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' }, beginAtZero: true }
+          }
+        }
+      });
+    },
+
+    buildDoughnut(id, labels, data, colors) {
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      if (this.charts[id]) { this.charts[id].destroy(); }
+      this.charts[id] = new Chart(canvas, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 8 }] },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12 } } }, cutout: '70%' }
+      });
+    },
+
+    async approve(runId) {
+      await fetch(`/approve/${runId}`, { method: 'POST' });
+      this.showToast(`✅ Approved: ${runId.slice(0,12)}…`);
+      await this.refresh();
+    },
+
+    async reject(runId) {
+      await fetch(`/reject/${runId}`, { method: 'POST' });
+      this.showToast(`❌ Rejected: ${runId.slice(0,12)}…`);
+      await this.refresh();
+    },
+
+    async dispatchRun(jdId, jdUrl) {
+      const res = await fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jd_id: jdId, jd_url: jdUrl || '' })
+      });
+      const d = await res.json();
+      this.showToast(`▶ Started run: ${d.run_id}`);
+      await this.refresh();
+    },
+
+    showToast(msg) {
+      this.toast = msg;
+      setTimeout(() => this.toast = '', 3500);
+    }
+  }
+}
+</script>
+</body>
+</html>

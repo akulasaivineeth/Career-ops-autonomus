@@ -2,12 +2,14 @@
 HTTP control plane for the LangGraph stack (BUILD.md Tasks 0.6 + 1.7).
 
 Binds loopback only. Endpoints:
+  GET  /                    → Dashboard UI
+  GET  /api/dashboard       → Dashboard JSON data
   GET  /health
   POST /run
   GET  /state/{run_id}
   POST /internal/request_approval
-  GET  /webhook/whatsapp   (Meta verification)
-  POST /webhook/whatsapp   (inbound replies)
+  GET  /webhook/whatsapp    (Meta verification)
+  POST /webhook/whatsapp    (inbound replies)
   POST /approve/{run_id}
   POST /reject/{run_id}
 """
@@ -19,6 +21,8 @@ import subprocess
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from bridge.approvals import (
@@ -30,6 +34,7 @@ from bridge.approvals import (
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _VERIFY_TOKEN = os.environ.get("WA_WEBHOOK_VERIFY_TOKEN", "")
+_TEMPLATES = Jinja2Templates(directory=str(Path(__file__).resolve().parent / "templates"))
 
 
 def _git_short_sha() -> str:
@@ -57,6 +62,62 @@ app = FastAPI(
     description="Local HITL + status API for the autonomous applier (see BUILD.md).",
     on_startup=[restore_on_startup],  # type: ignore[arg-type]
 )
+
+
+# ---------------------------------------------------------------------------
+# Dashboard UI
+# ---------------------------------------------------------------------------
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def dashboard_ui(request: Request) -> HTMLResponse:
+    """Serve the single-page dashboard."""
+    db_path = _REPO_ROOT / "db" / "careerops.db"
+    import sqlite3
+
+    db_tables = 0
+    if db_path.exists():
+        try:
+            conn = sqlite3.connect(str(db_path))
+            db_tables = conn.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table'"
+            ).fetchone()[0]
+            conn.close()
+        except Exception:
+            pass
+
+    html = _TEMPLATES.get_template("dashboard.html").render(
+        version=_git_short_sha(), db_tables=db_tables
+    )
+    return HTMLResponse(html)
+
+
+@app.get("/api/dashboard")
+async def dashboard_data() -> dict:
+    """Return all dashboard data as JSON for the Alpine.js frontend."""
+    from bridge.dashboard import (
+        get_ats_chart_data,
+        get_pending_approvals,
+        get_pipeline,
+        get_recent_runs,
+        get_reports,
+        get_score_chart_data,
+        get_stats,
+        get_week_activity,
+    )
+    from bridge.secrets_status import get_secrets_status
+
+    return {
+        "stats": get_stats(),
+        "runs": get_recent_runs(50),
+        "approvals": get_pending_approvals(),
+        "pipeline": get_pipeline(100),
+        "reports": get_reports(30),
+        "secrets": get_secrets_status(),
+        "score_chart": get_score_chart_data(),
+        "ats_chart": get_ats_chart_data(),
+        "week_activity": get_week_activity(),
+    }
 
 
 # ---------------------------------------------------------------------------
